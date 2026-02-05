@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Radio Juneteenth</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <title>Mixtapes & Memory: Black Sounds of Albuquerque 1985 - 1988</title>
     <style>
         :root { 
             --bg: #000000; 
@@ -19,12 +22,12 @@
             font-family: -apple-system, system-ui, sans-serif;
             display: flex; 
             flex-direction: column; 
-            height: 100dvh; /* Dynamic viewport height for Safari */
+            height: 100dvh;
             margin: 0;
             padding: 12px 12px env(safe-area-inset-bottom) 12px;
             box-sizing: border-box;
             overflow: hidden;
-            /* Prevents accidental text selection and long-press menus */
+            overscroll-behavior: none;
             -webkit-user-select: none;
             -webkit-touch-callout: none;
         }
@@ -55,19 +58,15 @@
             display: flex;
             flex-direction: column;
             overflow-y: auto; 
+            -webkit-overflow-scrolling: touch; 
+            scrollbar-width: thin; 
             margin-bottom: 12px;
-            /* Hide scrollbars for a clean look */
-            scrollbar-width: none;
-            -ms-overflow-style: none;
         }
 
-        #speaker-grill::-webkit-scrollbar {
-            display: none;
-        }
+        #speaker-grill::-webkit-scrollbar { width: 4px; }
+        #speaker-grill::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
 
-        .meta-content-wrapper {
-            transition: opacity 0.4s ease-in-out;
-        }
+        .meta-content-wrapper { transition: opacity 0.4s ease-in-out; }
         .meta-content-wrapper.fading { opacity: 0; }
 
         .meta-event { 
@@ -94,30 +93,44 @@
             color: #aaa;
         }
 
-        .footer-ui {
-            flex-shrink: 0;
-            padding-bottom: 4px;
+        #unm-credit {
+            margin-top: 20px;
+            opacity: 1; 
+            transition: opacity 0.8s ease;
         }
 
+        .archive-link {
+            font-size: 0.75rem;
+            color: var(--accent);
+            text-decoration: none;
+            border-top: 1px solid var(--border);
+            padding-top: 12px;
+            display: block;
+        }
+
+        .footer-ui { flex-shrink: 0; padding-bottom: 4px; }
+        
         .progress-container {
             width: 100%;
-            height: 4px;
+            height: 6px; /* Slightly thicker for better visual weight */
             background: #1a1a1a;
-            border-radius: 2px;
-            margin-bottom: 12px;
+            border-radius: 3px;
+            margin-bottom: 10px;
+            overflow: hidden;
         }
 
-        #progress-bar {
-            width: 0%;
-            height: 100%;
-            background: var(--accent);
-        }
-
-        .controls { 
+        #progress-bar { width: 0%; height: 100%; background: var(--accent); }
+        
+        .time-display {
             display: flex; 
-            gap: 10px; 
-            height: 54px;
+            font-size: 0.75rem; 
+            color: #666; 
+            margin-bottom: 8px; 
+            font-family: 'Courier New', Courier, monospace;
+            letter-spacing: 0.5px;
         }
+
+        .controls { display: flex; gap: 10px; height: 54px; }
 
         button { 
             background: #111; 
@@ -131,16 +144,10 @@
             flex: 1; 
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
-            /* Fixes the iPhone double-tap zoom issue */
             touch-action: manipulation;
         }
 
-        #play-btn { 
-            flex: 2; 
-            font-size: 1rem; 
-            font-weight: 900; 
-            color: var(--accent);
-        }
+        #play-btn { flex: 2; font-size: 1rem; font-weight: 900; color: var(--accent); }
     </style>
 </head>
 <body>
@@ -158,12 +165,23 @@
                 Shirley Ann Griffin (a University of New Mexico student) lovingly documented the sounds, songs and speeches that you would have heard at African American gatherings in Albuquerque during the 1980s.
             </div>
         </div>
+
+        <div id="unm-credit">
+            <a href="https://nmarchives.unm.edu/repositories/22/resources/2297" target="_blank" class="archive-link">
+                View Full Shirley Ann Griffin-Martin Archive at UNM →
+            </a>
+        </div>
     </div>
 
     <div class="footer-ui">
+        <div class="time-display">
+            <span id="time-current">0:00</span>&nbsp;/&nbsp;<span id="time-segment-duration">0:45</span>
+        </div>
+        
         <div class="progress-container">
             <div id="progress-bar"></div>
         </div>
+
         <div class="controls">
             <button onclick="handleBack()">⏮️</button>
             <button id="play-btn" onclick="togglePlay()">PLAY</button>
@@ -171,14 +189,20 @@
         </div>
     </div>
 
-    <audio id="main-audio" src="audio.mp3"></audio>
+    <audio id="audio-player" preload="metadata">
+        <source src="audio.webm" type="audio/webm">
+        <source src="audio.mp3" type="audio/mpeg">
+    </audio>
 
     <script>
-        const audio = document.getElementById('main-audio');
+        const audio = document.getElementById('audio-player');
         const playBtn = document.getElementById('play-btn');
         const progressBar = document.getElementById('progress-bar');
         const contentWrapper = document.getElementById('meta-content-wrapper');
         const eventTag = document.getElementById('ui-event');
+        const creditLink = document.getElementById('unm-credit');
+        const timeCurrent = document.getElementById('time-current');
+        const timeDurationLabel = document.getElementById('time-segment-duration');
 
         let isStarted = false;
         let currentTitle = "";
@@ -189,24 +213,32 @@
             {"start": 45, "event": "1985 Juneteenth Celebration", "title": "Solid (Live)", "context": "Local band True Love covers the Ashford & Simpson hit at Juneteenth '85."},
             {"start": 90, "event": "1985 Juneteenth Celebration", "title": "We Will Stand", "context": "Spoken intro by Dominique Foster & Nicole Love on unity."},
             {"start": 135, "event": "1985 Juneteenth Celebration", "title": "Committee Shout-Out", "context": "The band improvises a thank you to Joe & Rita Powdrell, and the entire Juneteenth Committee."},
-            {"start": 180, "event": "1986 Juneteenth Celebration", "title": "Harambe Intro", "context": "Ed Johnson explains the 1986 theme of Unity: Harambe."},
-            {"start": 225, "event": "1986 Juneteenth Celebration", "title": "Black Adoption Plea", "context": "Corliss Thalley delivers a message on Black children in NM."},
-            {"start": 270, "event": "1986 Juneteenth Celebration", "title": "Hug Somebody", "context": "Joe Powdrell commands the 1986 Juneteenth crowd to embrace."},
-            {"start": 315, "event": "1986 Juneteenth Celebration", "title": "Wisdom of Elders", "context": "79-year-old Mrs. Thompson speaks on freedom and ancestors."},
-            {"start": 360, "event": "1986 Juneteenth Celebration", "title": "White Girl", "context": "Jaqueline Parton performs a raw spoken-word monologue."},
-            {"start": 405, "event": "1986 Juneteenth Celebration", "title": "Rock Hard Crew", "context": "Early Albuquerque hip-hop and beatboxing performance."},
-            {"start": 450, "event": "1986 Juneteenth Celebration", "title": "The Green Impala", "context": "A classic community announcement for license tag HTK173."},
-            {"start": 495, "event": "1986 Juneteenth Celebration", "title": "Sojourner Truth Poem", "context": "Jaqueline Parton recites 'Ain't I a Woman?'."},
-            {"start": 540, "event": "1987 Christmas Service", "title": "Door Keeper", "context": "Reading of Psalms at the Phillips Chapel, Christian Methodist Episcopal Church Christmas Service."},
-            {"start": 585, "event": "1987 Christmas Service", "title": "Christmas Gospel", "context": "Traditional reading of Luke II during at the Phillips Chapel, Christian Methodist Episcopal Church Christmas Service."},
-            {"start": 630, "event": "1988 UNM Third Annual BHM Kickoff Brunch", "title": "Crisis of Character", "context": "Excerpt from the UNM Black History Month Kickoff speech."},
-            {"start": 675, "event": "1988 UNM Third Annual BHM Kickoff Brunch", "title": "Still I Rise", "context": "Recitation of Maya Angelou at the 1988 UNM brunch."},
-            {"start": 720, "event": "1988 Bethesda SDA: UNCF Fundraiser", "title": "Terrible Thing to Waste", "context": "UNCF fundraising pitch during the 1988 gospel fundraiser."},
-            {"start": 765, "event": "1988 Juneteenth Celebration", "title": "Suspect Intro", "context": "Funk band Suspect starts their set at Juneteenth '88."},
-            {"start": 810, "event": "1988 Juneteenth Celebration", "title": "Cavalier Peewees", "context": "Vernon King introduces the kids' drill team squad."},
-           {"start": 855, "event": "1988 Juneteenth Celebration", "title": "Indian Soul Tacos", "context": "Vernon King reads the quintessential NM fusion menu."},
-           {"start": 900, "event": "1988 Juneteenth Celebration", "title": "Stand By Me", "context": "The Voices of Praise singing the classic soul/gospel hit. This final archival recording plays in its entirety to conclude our broadcast."}
-];
+            {"start": 180, "event": "1986 Juneteenth Celebration", "title": "Lift Every Voice and Sing", "context": "Marsha Hardeman leads the crowd in singing the Black National Anthem."},
+            {"start": 225, "event": "1986 Juneteenth Celebration", "title": "Harambe Intro", "context": "Ed Johnson explains the 1986 theme of Unity: Harambe."},
+            {"start": 270, "event": "1986 Juneteenth Celebration", "title": "Black Adoption Plea", "context": "Corliss Thalley delivers a message on Black children in NM."},
+            {"start": 315, "event": "1986 Juneteenth Celebration", "title": "Hug Somebody", "context": "Joe Powdrell commands the 1986 Juneteenth crowd to embrace."},
+            {"start": 360, "event": "1986 Juneteenth Celebration", "title": "Wisdom of Elders", "context": "79-year-old Mrs. Thompson speaks on freedom and ancestors."},
+            {"start": 405, "event": "1986 Juneteenth Celebration", "title": "White Girl", "context": "Jaqueline Parton performs a raw spoken-word monologue."},
+            {"start": 450, "event": "1986 Juneteenth Celebration", "title": "Rock Hard Crew", "context": "Early Albuquerque hip-hop and beatboxing performance."},
+            {"start": 495, "event": "1986 Juneteenth Celebration", "title": "The Green Impala", "context": "A classic community announcement for license tag HTK173."},
+            {"start": 540, "event": "1986 Juneteenth Celebration", "title": "Sojourner Truth Poem", "context": "Jaqueline Parton recites 'Ain't I a Woman?'."},
+            {"start": 585, "event": "1987 Christmas Service", "title": "Door Keeper", "context": "Reading of Psalms at the Phillips Chapel, CME Church Christmas Service."},
+            {"start": 630, "event": "1987 Christmas Service", "title": "Christmas Gospel", "context": "Traditional reading of Luke II during the Phillips Chapel Christmas Service."},
+            {"start": 675, "event": "1988 UNM Third Annual BHM Kickoff Brunch", "title": "Crisis of Character", "context": "Excerpt from the UNM Black History Month Kickoff keynote by Yolanda King."},
+            {"start": 720, "event": "1988 UNM Third Annual BHM Kickoff Brunch", "title": "Still I Rise", "context": "Recitation of Maya Angelou at the 1988 UNM brunch."},
+            {"start": 765, "event": "1988 Bethesda SDA: UNCF Fundraiser", "title": "Terrible Thing to Waste", "context": "UNCF fundraising pitch during the 1988 gospel fundraiser."},
+            {"start": 810, "event": "1988 Juneteenth Celebration", "title": "Suspect Intro", "context": "Funk band Suspect starts their set at Juneteenth '88."},
+            {"start": 855, "event": "1988 Juneteenth Celebration", "title": "Cavalier Peewees", "context": "Vernon King introduces the kids' drill team squad."},
+            {"start": 900, "event": "1988 Juneteenth Celebration", "title": "Indian Soul Tacos", "context": "Vernon King reads the quintessential NM fusion menu."},
+            {"start": 945, "event": "1988 Juneteenth Celebration", "title": "Stand By Me", "context": "The Voices of Praise singing the soul hit. This final recording concludes our broadcast."}
+        ];
+
+        function formatTime(s) {
+            if (isNaN(s)) return "0:00";
+            const mins = Math.floor(s / 60);
+            const secs = Math.floor(s % 60);
+            return mins + ":" + (secs < 10 ? "0" : "") + secs;
+        }
 
         function togglePlay() {
             if (audio.paused) {
@@ -214,6 +246,7 @@
                 isStarted = true;
                 playBtn.innerText = "PAUSE";
                 playBtn.style.color = "#fff";
+                if (audio.currentTime < 945) creditLink.style.opacity = "0";
             } else {
                 audio.pause();
                 playBtn.innerText = "PLAY";
@@ -245,32 +278,55 @@
         }
 
         audio.ontimeupdate = () => {
-            if (isStarted) {
-                const current = metadata[getCurrentIndex()];
+            const currentIndex = getCurrentIndex();
+            const current = metadata[currentIndex];
+            
+            if (current) {
+                const relativeTime = audio.currentTime - current.start;
+                const nextSegment = metadata[currentIndex + 1];
                 
-                if (current && current.title !== currentTitle) {
-                    const eventChanged = current.event !== currentEvent;
+                let segmentDuration;
+                if (nextSegment) {
+                    segmentDuration = nextSegment.start - current.start;
+                } else {
+                    segmentDuration = (audio.duration && !isNaN(audio.duration)) 
+                        ? (audio.duration - current.start) 
+                        : 45;
+                }
 
-                    contentWrapper.classList.add('fading');
-                    if (eventChanged) eventTag.style.opacity = 0;
+                timeCurrent.innerText = formatTime(relativeTime);
+                timeDurationLabel.innerText = formatTime(segmentDuration);
+                
+                const progressPercent = (relativeTime / segmentDuration) * 100;
+                progressBar.style.width = Math.min(progressPercent, 100) + "%";
 
-                    setTimeout(() => {
-                        eventTag.innerText = current.event;
-                        document.getElementById('ui-title').innerText = current.title;
-                        document.getElementById('ui-context').innerText = current.context;
-                        
-                        currentTitle = current.title;
-                        currentEvent = current.event;
-
-                        contentWrapper.classList.remove('fading');
-                        eventTag.style.opacity = 1;
-                    }, 400); 
+                if (isStarted && current.title !== currentTitle) {
+                    handleMetadataTransition(current);
+                    
+                    if (!nextSegment) {
+                        creditLink.style.opacity = "1";
+                    } else {
+                        creditLink.style.opacity = "0";
+                    }
                 }
             }
-            if (audio.duration) {
-                progressBar.style.width = (audio.currentTime / audio.duration * 100) + "%";
-            }
         };
+
+        function handleMetadataTransition(current) {
+            const eventChanged = current.event !== currentEvent;
+            contentWrapper.classList.add('fading');
+            if (eventChanged) eventTag.style.opacity = 0;
+
+            setTimeout(() => {
+                eventTag.innerText = current.event;
+                document.getElementById('ui-title').innerText = current.title;
+                document.getElementById('ui-context').innerText = current.context;
+                currentTitle = current.title;
+                currentEvent = current.event;
+                contentWrapper.classList.remove('fading');
+                eventTag.style.opacity = 1;
+            }, 400);
+        }
     </script>
 </body>
 </html>
