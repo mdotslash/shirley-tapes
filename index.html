@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Radio Juneteenth</title>
+    <style>
+        :root { 
+            --bg: #000000; 
+            --text: #ffffff; 
+            --accent: #ff9500; 
+            --panel: #0a0a0a; 
+            --border: #1a1a1a;
+        }
+        
+        body { 
+            background: var(--bg); 
+            color: var(--text); 
+            font-family: -apple-system, system-ui, sans-serif;
+            display: flex; 
+            flex-direction: column; 
+            height: 100dvh; /* Dynamic viewport height for Safari */
+            margin: 0;
+            padding: 12px 12px env(safe-area-inset-bottom) 12px;
+            box-sizing: border-box;
+            overflow: hidden;
+            /* Prevents accidental text selection and long-press menus */
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        #hero-image-container {
+            width: 100%;
+            flex: 0 1 35vh; 
+            background: #000;
+            border-radius: 4px; 
+            margin-bottom: 8px; 
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+        }
+
+        #hero-image-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        #speaker-grill { 
+            flex: 1 1 auto; 
+            background: var(--panel); 
+            border-radius: 8px; 
+            padding: 16px; 
+            border: 1px solid var(--border); 
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto; 
+            margin-bottom: 12px;
+            /* Hide scrollbars for a clean look */
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        #speaker-grill::-webkit-scrollbar {
+            display: none;
+        }
+
+        .meta-content-wrapper {
+            transition: opacity 0.4s ease-in-out;
+        }
+        .meta-content-wrapper.fading { opacity: 0; }
+
+        .meta-event { 
+            color: var(--accent); 
+            font-weight: 700; 
+            font-size: 0.7rem; 
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+            transition: opacity 0.4s;
+        }
+
+        .meta-title { 
+            font-size: clamp(1.2rem, 5vw, 1.8rem); 
+            margin-bottom: 8px; 
+            color: #fff; 
+            font-weight: 800; 
+            line-height: 1.1;
+        }
+
+        .meta-context { 
+            font-size: 0.85rem; 
+            line-height: 1.5; 
+            color: #aaa;
+        }
+
+        .footer-ui {
+            flex-shrink: 0;
+            padding-bottom: 4px;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 4px;
+            background: #1a1a1a;
+            border-radius: 2px;
+            margin-bottom: 12px;
+        }
+
+        #progress-bar {
+            width: 0%;
+            height: 100%;
+            background: var(--accent);
+        }
+
+        .controls { 
+            display: flex; 
+            gap: 10px; 
+            height: 54px;
+        }
+
+        button { 
+            background: #111; 
+            color: white; 
+            border: 1px solid #333; 
+            border-radius: 12px; 
+            font-size: 1.3rem; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1; 
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            /* Fixes the iPhone double-tap zoom issue */
+            touch-action: manipulation;
+        }
+
+        #play-btn { 
+            flex: 2; 
+            font-size: 1rem; 
+            font-weight: 900; 
+            color: var(--accent);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="hero-image-container">
+        <img src="bg-image.png" alt="Shirley Ann Griffin-Martin" id="hero-img">
+    </div>
+
+    <div id="speaker-grill">
+        <div class="meta-event" id="ui-event">Mixtapes & Memory</div>
+        
+        <div id="meta-content-wrapper" class="meta-content-wrapper">
+            <div class="meta-title" id="ui-title">The Sounds of Black Albuquerque 85-88</div>
+            <div class="meta-context" id="ui-context">
+                Shirley Ann Griffin (a University of New Mexico student) lovingly documented the sounds, songs and speeches that you would have heard at African American gatherings in Albuquerque during the 1980s.
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-ui">
+        <div class="progress-container">
+            <div id="progress-bar"></div>
+        </div>
+        <div class="controls">
+            <button onclick="handleBack()">⏮️</button>
+            <button id="play-btn" onclick="togglePlay()">PLAY</button>
+            <button onclick="handleForward()">⏭️</button>
+        </div>
+    </div>
+
+    <audio id="main-audio" src="audio.mp3"></audio>
+
+    <script>
+        const audio = document.getElementById('main-audio');
+        const playBtn = document.getElementById('play-btn');
+        const progressBar = document.getElementById('progress-bar');
+        const contentWrapper = document.getElementById('meta-content-wrapper');
+        const eventTag = document.getElementById('ui-event');
+
+        let isStarted = false;
+        let currentTitle = "";
+        let currentEvent = "";
+
+        const metadata = [
+            {"start": 0, "event": "1985 Juneteenth Celebration", "title": "The Proclamation", "context": "Dr. Lenton Malry reads the official 1985 Juneteenth Proclamation."},
+            {"start": 45, "event": "1985 Juneteenth Celebration", "title": "Solid (Live)", "context": "Local band True Love covers the Ashford & Simpson hit at Juneteenth '85."},
+            {"start": 90, "event": "1985 Juneteenth Celebration", "title": "We Will Stand", "context": "Spoken intro by Dominique Foster & Nicole Love on unity."},
+            {"start": 135, "event": "1985 Juneteenth Celebration", "title": "Committee Shout-Out", "context": "The band improvises a thank you to Joe & Rita Powdrell, and the entire Juneteenth Committee."},
+            {"start": 180, "event": "1986 Juneteenth Celebration", "title": "Harambe Intro", "context": "Ed Johnson explains the 1986 theme of Unity: Harambe."},
+            {"start": 225, "event": "1986 Juneteenth Celebration", "title": "Black Adoption Plea", "context": "Corliss Thalley delivers a message on Black children in NM."},
+            {"start": 270, "event": "1986 Juneteenth Celebration", "title": "Hug Somebody", "context": "Joe Powdrell commands the 1986 Juneteenth crowd to embrace."},
+            {"start": 315, "event": "1986 Juneteenth Celebration", "title": "Wisdom of Elders", "context": "79-year-old Mrs. Thompson speaks on freedom and ancestors."},
+            {"start": 360, "event": "1986 Juneteenth Celebration", "title": "White Girl", "context": "Jaqueline Parton performs a raw spoken-word monologue."},
+            {"start": 405, "event": "1986 Juneteenth Celebration", "title": "Rock Hard Crew", "context": "Early Albuquerque hip-hop and beatboxing performance."},
+            {"start": 450, "event": "1986 Juneteenth Celebration", "title": "The Green Impala", "context": "A classic community announcement for license tag HTK173."},
+            {"start": 495, "event": "1986 Juneteenth Celebration", "title": "Sojourner Truth Poem", "context": "Jaqueline Parton recites 'Ain't I a Woman?'."},
+            {"start": 540, "event": "1987 Christmas Service", "title": "Door Keeper", "context": "Reading of Psalms at the Phillips Chapel, Christian Methodist Episcopal Church Christmas Service."},
+            {"start": 585, "event": "1987 Christmas Service", "title": "Christmas Gospel", "context": "Traditional reading of Luke II during at the Phillips Chapel, Christian Methodist Episcopal Church Christmas Service."},
+            {"start": 630, "event": "1988 UNM Third Annual BHM Kickoff Brunch", "title": "Crisis of Character", "context": "Excerpt from the UNM Black History Month Kickoff speech."},
+            {"start": 675, "event": "1988 UNM Third Annual BHM Kickoff Brunch", "title": "Still I Rise", "context": "Recitation of Maya Angelou at the 1988 UNM brunch."},
+            {"start": 720, "event": "1988 Bethesda SDA: UNCF Fundraiser", "title": "Terrible Thing to Waste", "context": "UNCF fundraising pitch during the 1988 gospel fundraiser."},
+            {"start": 765, "event": "1988 Juneteenth Celebration", "title": "Suspect Intro", "context": "Funk band Suspect starts their set at Juneteenth '88."},
+            {"start": 810, "event": "1988 Juneteenth Celebration", "title": "Cavalier Peewees", "context": "Vernon King introduces the kids' drill team squad."},
+           {"start": 855, "event": "1988 Juneteenth Celebration", "title": "Indian Soul Tacos", "context": "Vernon King reads the quintessential NM fusion menu."},
+           {"start": 900, "event": "1988 Juneteenth Celebration", "title": "Stand By Me", "context": "The Voices of Praise singing the classic soul/gospel hit. This final archival recording plays in its entirety to conclude our broadcast."}
+];
+
+        function togglePlay() {
+            if (audio.paused) {
+                audio.play();
+                isStarted = true;
+                playBtn.innerText = "PAUSE";
+                playBtn.style.color = "#fff";
+            } else {
+                audio.pause();
+                playBtn.innerText = "PLAY";
+                playBtn.style.color = "var(--accent)";
+            }
+        }
+
+        function handleBack() {
+            const idx = getCurrentIndex();
+            if (idx !== -1) {
+                if (audio.currentTime - metadata[idx].start > 3) {
+                    audio.currentTime = metadata[idx].start;
+                } else if (idx > 0) {
+                    audio.currentTime = metadata[idx - 1].start;
+                }
+            }
+        }
+
+        function handleForward() {
+            const idx = getCurrentIndex();
+            if (idx !== -1 && idx < metadata.length - 1) {
+                audio.currentTime = metadata[idx + 1].start;
+            }
+        }
+
+        function getCurrentIndex() {
+            const time = audio.currentTime;
+            return metadata.findLastIndex(m => time >= m.start);
+        }
+
+        audio.ontimeupdate = () => {
+            if (isStarted) {
+                const current = metadata[getCurrentIndex()];
+                
+                if (current && current.title !== currentTitle) {
+                    const eventChanged = current.event !== currentEvent;
+
+                    contentWrapper.classList.add('fading');
+                    if (eventChanged) eventTag.style.opacity = 0;
+
+                    setTimeout(() => {
+                        eventTag.innerText = current.event;
+                        document.getElementById('ui-title').innerText = current.title;
+                        document.getElementById('ui-context').innerText = current.context;
+                        
+                        currentTitle = current.title;
+                        currentEvent = current.event;
+
+                        contentWrapper.classList.remove('fading');
+                        eventTag.style.opacity = 1;
+                    }, 400); 
+                }
+            }
+            if (audio.duration) {
+                progressBar.style.width = (audio.currentTime / audio.duration * 100) + "%";
+            }
+        };
+    </script>
+</body>
+</html>
