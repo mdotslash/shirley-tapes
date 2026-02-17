@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
     <title>Mixtapes & Memory: Black Sounds of Albuquerque 1985 - 1988</title>
     <style>
         :root { 
@@ -30,6 +29,17 @@
             overscroll-behavior: none;
             -webkit-user-select: none;
             -webkit-touch-callout: none;
+        }
+
+        .update-banner {
+            font-size: 0.65rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: center;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #111;
+            padding-bottom: 4px;
         }
 
         #hero-image-container {
@@ -87,6 +97,8 @@
             line-height: 1.1;
         }
 
+        .updated-track { color: #fff !important; text-shadow: 0 0 12px rgba(46, 204, 113, 0.5); }
+
         .meta-context { 
             font-size: 0.85rem; 
             line-height: 1.5; 
@@ -112,7 +124,7 @@
         
         .progress-container {
             width: 100%;
-            height: 6px; /* Slightly thicker for better visual weight */
+            height: 6px; 
             background: #1a1a1a;
             border-radius: 3px;
             margin-bottom: 10px;
@@ -131,7 +143,6 @@
         }
 
         .controls { display: flex; gap: 10px; height: 54px; }
-
         button { 
             background: #111; 
             color: white; 
@@ -151,6 +162,7 @@
     </style>
 </head>
 <body>
+    <div class="update-banner">✨ Updated 2/17 ✨</div>
 
     <div id="hero-image-container">
         <img src="bg-image.png" alt="Shirley Ann Griffin-Martin" id="hero-img">
@@ -209,28 +221,38 @@
         let currentEvent = "";
 
         const metadata = [
-            {"start": 0, "event": "1985 Juneteenth Celebration", "title": "The Proclamation", "context": "Dr. Lenton Malry, New Mexico's first African-American State legislator, reads the official 1985 Juneteenth Proclamation."},
-            {"start": 45, "event": "1985 Juneteenth Celebration", "title": "Solid (Live)", "context": "Local band True Love covers the Ashford & Simpson hit at Juneteenth '85."},
-            {"start": 90, "event": "1985 Juneteenth Celebration", "title": "We Will Stand", "context": "Spoken intro by Dominique Foster & Nicole Love on unity."},
-            {"start": 135, "event": "1985 Juneteenth Celebration", "title": "Committee Shout-Out", "context": "The band improvises a thank you to Joe & Rita Powdrell, and the entire Juneteenth Committee."},
-            {"start": 180, "event": "1986 Juneteenth Celebration", "title": "Lift Every Voice and Sing", "context": "Marsha Hardeman leads the crowd in singing the Black National Anthem."},
+            {"start": 0, "event": "1985 Juneteenth Celebration", "title": "The Proclamation", "context": "Dr. Lenton Malry reads the official 1985 Juneteenth Proclamation."},
+            {"start": 45, "event": "1985 Juneteenth Celebration", "title": "Solid (Live)", "context": "Local band True Love covers Ashford & Simpson at Juneteenth '85."},
+            {"start": 90, "event": "1985 Juneteenth Celebration", "title": "Juneteenth Pageant", "context": "Interviews and introduction of Queen Monique Fields.", "updated": true},
+            {"start": 135, "event": "1985 Juneteenth Celebration", "title": "We Will Stand", "context": "Spoken intro by Dominique Foster & Nicole Love on unity."},
+            {"start": 180, "event": "1985 Juneteenth Celebration", "title": "Committee Shout-Out", "context": "The band improvises a thank you to the Juneteenth Committee."},
             {"start": 225, "event": "1986 Juneteenth Celebration", "title": "Harambe Intro", "context": "Ed Johnson explains the 1986 theme of Unity: Harambe."},
-            {"start": 270, "event": "1986 Juneteenth Celebration", "title": "Black Adoption Plea", "context": "Corliss Thalley delivers a message on Black children in NM."},
-            {"start": 315, "event": "1986 Juneteenth Celebration", "title": "Hug Somebody", "context": "Joe Powdrell commands the 1986 Juneteenth crowd to embrace."},
-            {"start": 360, "event": "1986 Juneteenth Celebration", "title": "Wisdom of Elders", "context": "79-year-old Mrs. Thompson speaks on freedom and ancestors."},
-            {"start": 405, "event": "1986 Juneteenth Celebration", "title": "White Girl", "context": "Jaqueline Parton performs a raw spoken-word monologue."},
-            {"start": 450, "event": "1986 Juneteenth Celebration", "title": "Rock Hard Crew", "context": "Early Albuquerque hip-hop and beatboxing performance."},
-            {"start": 495, "event": "1986 Juneteenth Celebration", "title": "The Green Impala", "context": "A classic community announcement for license tag HTK173."},
-            {"start": 540, "event": "1986 Juneteenth Celebration", "title": "Sojourner Truth Poem", "context": "Jaqueline Parton recites 'Ain't I a Woman?'."},
-            {"start": 585, "event": "1987 Christmas Service", "title": "Door Keeper", "context": "Reading of Psalms at the Phillips Chapel, CME Church Christmas Service."},
-            {"start": 630, "event": "1987 Christmas Service", "title": "Christmas Gospel", "context": "Traditional reading of Luke II during the Phillips Chapel Christmas Service."},
-            {"start": 675, "event": "1988 UNM Third Annual BHM Kickoff Brunch", "title": "Crisis of Character", "context": "Excerpt from the UNM Black History Month Kickoff keynote by Yolanda King."},
-            {"start": 720, "event": "1988 UNM Third Annual BHM Kickoff Brunch", "title": "Still I Rise", "context": "Recitation of Maya Angelou at the 1988 UNM brunch."},
-            {"start": 765, "event": "1988 Bethesda SDA: UNCF Fundraiser", "title": "Terrible Thing to Waste", "context": "UNCF fundraising pitch during the 1988 gospel fundraiser."},
-            {"start": 810, "event": "1988 Juneteenth Celebration", "title": "Suspect Intro", "context": "Funk band Suspect starts their set at Juneteenth '88."},
-            {"start": 855, "event": "1988 Juneteenth Celebration", "title": "Cavalier Peewees", "context": "Vernon King introduces the kids' drill team squad."},
-            {"start": 900, "event": "1988 Juneteenth Celebration", "title": "Indian Soul Tacos", "context": "Vernon King reads the quintessential NM fusion menu."},
-            {"start": 945, "event": "1988 Juneteenth Celebration", "title": "Stand By Me", "context": "The Voices of Praise singing the soul hit. This final recording concludes our broadcast."}
+            {"start": 270, "event": "1986 Juneteenth Celebration", "title": "Lift Every Voice and Sing", "context": "Marsha Hardeman leads the crowd in singing the Black National Anthem.", "updated": true},
+            {"start": 315, "event": "1986 Juneteenth Celebration", "title": "ABQ Mass Choir Intro", "context": "Selection from The Albuquerque Mass Choir performance.", "updated": true},
+            {"start": 360, "event": "1986 Juneteenth Celebration", "title": "Fellowship Baptist Church Choir", "context": "Selection from Fellowship Baptist Church Choir performance (With Marsha Hardeman)", "updated": true},
+            {"start": 405, "event": "1986 Juneteenth Celebration", "title": "Black Adoption Plea", "context": "Corliss Thalley on Black children in New Mexico."},
+            {"start": 450, "event": "1986 Juneteenth Celebration", "title": "Standing on the Word", "context": "Another amazing ABQ Mass Choir performance.", "updated": true},
+            {"start": 495, "event": "1986 Juneteenth Celebration", "title": "Hug Somebody", "context": "Joe Powdrell asks the 1986 crowd to embrace."},
+            {"start": 540, "event": "1986 Juneteenth Celebration", "title": "Wisdom of Elders", "context": "79-year-old Mrs. Thompson speaks on freedom."},
+            {"start": 585, "event": "1986 Juneteenth Celebration", "title": "White Girl", "context": "Jaqueline Parton performs a spoken-word monologue."},
+            {"start": 630, "event": "1986 Juneteenth Celebration", "title": "Rock Hard Crew", "context": "Early Albuquerque hip-hop and beatboxing."},
+            {"start": 675, "event": "1986 Juneteenth Celebration", "title": "The Green Impala", "context": "A classic community announcement for tag HTK173."},
+            {"start": 720, "event": "1986 Juneteenth Celebration", "title": "Sojourner Truth Poem", "context": "Jaqueline Parton recites 'Ain't I a Woman?'."},
+            {"start": 765, "event": "1987 Christmas Service (Phillips Chapel)", "title": "Door Keeper", "context": "Reading of Psalms at Phillips Chapel, CME Church."},
+            {"start": 810, "event": "1987 Christmas Service (Phillips Chapel)", "title": "Christmas Gospel", "context": "Reading of Luke II at the Christmas Service."},
+            {"start": 855, "event": "1988 UNM Third Annual BHM Kickoff Brunch", "title": "Crisis of Character", "context": "Keynote by Yolanda King at the UNM BHM brunch."},
+            {"start": 900, "event": "1988 UNM Third Annual BHM Kickoff Brunch", "title": "Still I Rise", "context": "Recitation of Maya Angelou at the 1988 brunch."},
+            {"start": 945, "event": "1988 Bethesda SDA: UNCF Fundraiser", "title": "Welcome", "context": "Alex Horton welcomes the crowd to the musical fundraiser for UNCF.", "updated": true},
+            {"start": 990, "event": "1988 Bethesda SDA: UNCF Fundraiser", "title": "Terrible Thing to Waste", "context": "UNCF fundraising pitch regarding education."},
+            {"start": 1035, "event": "1988 Bethesda SDA: UNCF Fundraiser", "title": "Speech - Lenton Malry", "context": "Dr. Lenton Malry addresses the community.", "updated": true},
+            {"start": 1080, "event": "1988 Bethesda SDA: UNCF Fundraiser", "title": "Janice McKinney UNCF Acknowledgment", "context": "The community honors UNCF student Janice McKinney.", "updated": true},
+            {"start": 1125, "event": "1988 Bethesda SDA: UNCF Fundraiser", "title": "More Acknowledgments and Intros", "context": "Community notices recorded at Bethesda SDA.", "updated": true},
+            {"start": 1170, "event": "1988 Bethesda SDA: UNCF Fundraiser", "title": "Importance of Education", "context": "Reverend Spikes on education as internal persistence.", "updated": true},
+            {"start": 1215, "event": "1988 Bethesda SDA: UNCF Fundraiser", "title": "Closing Prayer", "context": "Closing prayer at the conclusion of the UNCF fundraiser.", "updated": true},
+            {"start": 1260, "event": "1988 Juneteenth Celebration", "title": "Suspect Intro", "context": "Funk band Suspect starts their set at Juneteenth '88."},
+            {"start": 1305, "event": "1988 Juneteenth Celebration", "title": "Cavalier Peewees", "context": "Vernon King introduces the kids' drill team squad."},
+            {"start": 1350, "event": "1988 Juneteenth Celebration", "title": "Indian Soul Tacos", "context": "Vernon King reads the quintessential NM fusion menu."},
+            {"start": 1395, "event": "1988 Juneteenth Celebration", "title": "Stand By Me", "context": "The Voices of Praise singing the soul hit. This final recording concludes our broadcast."}
         ];
 
         function formatTime(s) {
@@ -246,7 +268,7 @@
                 isStarted = true;
                 playBtn.innerText = "PAUSE";
                 playBtn.style.color = "#fff";
-                if (audio.currentTime < 945) creditLink.style.opacity = "0";
+                if (audio.currentTime < 1395) creditLink.style.opacity = "0";
             } else {
                 audio.pause();
                 playBtn.innerText = "PLAY";
@@ -280,11 +302,11 @@
         audio.ontimeupdate = () => {
             const currentIndex = getCurrentIndex();
             const current = metadata[currentIndex];
-            
+                        
             if (current) {
                 const relativeTime = audio.currentTime - current.start;
                 const nextSegment = metadata[currentIndex + 1];
-                
+                                
                 let segmentDuration;
                 if (nextSegment) {
                     segmentDuration = nextSegment.start - current.start;
@@ -296,13 +318,13 @@
 
                 timeCurrent.innerText = formatTime(relativeTime);
                 timeDurationLabel.innerText = formatTime(segmentDuration);
-                
+                                
                 const progressPercent = (relativeTime / segmentDuration) * 100;
                 progressBar.style.width = Math.min(progressPercent, 100) + "%";
 
                 if (isStarted && current.title !== currentTitle) {
                     handleMetadataTransition(current);
-                    
+                                        
                     if (!nextSegment) {
                         creditLink.style.opacity = "1";
                     } else {
@@ -319,7 +341,16 @@
 
             setTimeout(() => {
                 eventTag.innerText = current.event;
-                document.getElementById('ui-title').innerText = current.title;
+                const titleEl = document.getElementById('ui-title');
+                
+                if (current.updated) {
+                    titleEl.classList.add('updated-track');
+                    titleEl.innerText = "✨ " + current.title;
+                } else {
+                    titleEl.classList.remove('updated-track');
+                    titleEl.innerText = current.title;
+                }
+
                 document.getElementById('ui-context').innerText = current.context;
                 currentTitle = current.title;
                 currentEvent = current.event;
