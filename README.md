@@ -1,4 +1,4 @@
-# 📻 Mixtapes & Memory: The Sounds of Albuquerque 1985 - 1988
+# 📻 Memory & Mixtapes: The Sounds of Albuquerque 1985 - 1988
 [![Live on GitHub Pages](https://img.shields.io/badge/Live-Demo-brightgreen)](https://mdotslash.github.io/shirley-tapes/)
 
 A high-fidelity, mobile-first web application designed to showcase archival audio from the **Shirley Ann Griffin-Martin Archive**. This player provides a curated journey through African American life in Albuquerque, NM, between 1985 and 1988.
